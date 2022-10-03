@@ -3,7 +3,7 @@
     internal class LoginJson
     {
         /// <summary>
-        /// 登入资料处理
+        /// 登入资料处理Json
         /// </summary>
         public class LoginDataJson
         {
@@ -132,7 +132,7 @@
             public List<string> tags { get; set; }
         }
         /// <summary>
-        /// 登入服务器响应内容
+        /// 登入服务器返回Json
         /// </summary>
         public class LoginReturnJson
         {

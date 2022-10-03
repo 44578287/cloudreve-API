@@ -93,7 +93,9 @@ namespace cloudreve调用.Json
             /// </summary>
             public int expires { get; set; }
         }
-
+        /// <summary>
+        /// PUT 上传文件返回Json
+        /// </summary>
         public class PUT_UploadFilesReturnJson
         {
             /// <summary>
@@ -103,12 +105,15 @@ namespace cloudreve调用.Json
             /// <summary>
             /// 返回内容
             /// </summary>
-            public Data data { get; set; }
+            public Data? data { get; set; }
             /// <summary>
             /// 反馈信息
             /// </summary>
             public string msg { get; set; }
         }
+        /// <summary>
+        /// POST 上传文件返回Json
+        /// </summary>
         public class POST_UploadFilesReturnJson
         {
             /// <summary>
