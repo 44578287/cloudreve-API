@@ -14,10 +14,9 @@ Logger.Enable(LoggerType.Console | LoggerType.Debug, LoggerLevel.Debug);//注册
 string ApiUrl = "http://127.0.0.1:5212";
 string? Cookie = null;
 LoginDataJson logindata = new()
-
 {
     UserName = "g9964957@gmail.com",
-    Password = "SUao44578287",
+    Password = "SUao445782871",
     CaptchaCode = ""
 };
 
@@ -50,3 +49,6 @@ PUT_UploadFilesReturnJson? UploadFilesReturnJson = JsonSerializer.Deserialize<PU
 
 Console.WriteLine(strings.Exists(strings => strings == "5"));
 Console.WriteLine(strings.Find(strings => strings == "7"));*/
+
+//Console.WriteLine(CloudreveAPI.GetConfig(ApiUrl, Cookie)?.data?.user.user_name);
+Console.WriteLine(CloudreveAPI.DeleteFiles(ApiUrl, Cookie, new() { "yOWSD" }));

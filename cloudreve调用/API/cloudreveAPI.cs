@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using static cloudreve调用.Json.ConfigJson;
+using static cloudreve调用.Json.DeleteFiles;
 using static cloudreve调用.Json.DeleteUpFileListJson;
 using static cloudreve调用.Json.DirectoryDataJson;
 using static cloudreve调用.Json.DownloadJson;
@@ -54,9 +56,9 @@ namespace cloudreve调用.API
                 }
                 return null;
             }
-            Logger.WriteInfor("登入Cloudrevet成功!");//打印至日志
+            Logger.WriteInfor("登入Cloudrevet成功! 组别:" + LoginReturnJson?.data?.group.name + " 用户名:" + LoginReturnJson?.data?.user_name + " 别名:" + LoginReturnJson?.data?.nickname);//打印至日志
             if (ScreenOut)
-                Console.WriteLine("登入Cloudrevet成功!");
+                Console.WriteLine("登入Cloudrevet成功! 组别:" + LoginReturnJson?.data?.group.name + " 用户名:" + LoginReturnJson?.data?.user_name + " 别名:" + LoginReturnJson?.data?.nickname);
             return ReturnCookie;
         }
         /// <summary>
@@ -351,5 +353,79 @@ namespace cloudreve调用.API
             Logger.WriteInfor("获取文件外链成功!" + " 文件ID:" + ReturnString);
             return FileSourceDataReturnJson;
         }//同时生成多个无法准确判断具体哪个没有正确生成
+        /// <summary>
+        /// 获取Config
+        /// </summary>
+        /// <param name="Url">Cloudreve服务器地址</param>
+        /// <param name="cookie">登入返还的Cookie</param>
+        /// <param name="ScreenOut">屏幕显示输出</param>
+        /// <returns>ConfigReturnJson 类型 返回内容</returns>
+        public static ConfigReturnJson? GetConfig(string Url, string? cookie, bool ScreenOut = true)
+        {
+            string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/site/config", cookie, httpMod: HttpMods.GET);
+            if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+            {
+                Logger.WriteError("发送获取Config失败(GET)!因为上面的原因...");//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("发送获取Config失败(GET)!因为上面的原因...");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return null;
+            }
+            ConfigReturnJson? ConfigReturnJson = JsonSerializer.Deserialize<ConfigReturnJson>(HttpRequestToStringData);
+            if (ConfigReturnJson?.code != 0)
+            {
+                Logger.WriteError("获取Config失败(GET)!因为:" + ConfigReturnJson?.msg);//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("获取Config失败(GET)!因为:" + ConfigReturnJson?.msg);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return ConfigReturnJson;
+            }
+            Logger.WriteInfor("获取Config成功! 组别:" + ConfigReturnJson.data?.user.group.name + " 用户名:" + ConfigReturnJson.data?.user.user_name + " 别名:" + ConfigReturnJson.data?.user.nickname);
+            return ConfigReturnJson;
+        }
+        /// <summary>
+        /// 删除文件
+        /// </summary>
+        /// <param name="Url">Cloudreve服务器地址</param>
+        /// <param name="cookie">登入返还的Cookie</param>
+        /// <param name="FilesID">要删除的文件ID</param>
+        /// <param name="DirsID">要删除的文件夹ID</param>
+        /// <param name="ScreenOut">屏幕显示输出</param>
+        /// <returns>ConfigReturnJson 类型 返回内容</returns>
+        public static DeleteFilesDataReturnJson? DeleteFiles(string Url, string? cookie, List<string>? FilesID = null, List<string>? DirsID = null, bool ScreenOut = true)
+        {
+            string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/object", cookie,data: DeleteFilesDataJson.DeleteFilesDataReturnJson(new() { items = FilesID, dirs = FilesID }), httpMod: HttpMods.DELETE);
+            if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+            {
+                Logger.WriteError("发送删除文件请求失败(DELETE)!因为上面的原因...");//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("发送删除文件请求失败(DELETE)!因为上面的原因...");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return null;
+            }
+            DeleteFilesDataReturnJson? DeleteFilesDataReturnJson = JsonSerializer.Deserialize<DeleteFilesDataReturnJson>(HttpRequestToStringData);
+            if (DeleteFilesDataReturnJson?.code != 0)
+            {
+                Logger.WriteError("删除文件失败(DELETE)!因为:" + DeleteFilesDataReturnJson?.msg);//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("删除文件失败(DELETE)!因为:" + DeleteFilesDataReturnJson?.msg);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return DeleteFilesDataReturnJson;
+            }
+            Logger.WriteInfor("删除文件成功!");
+            return DeleteFilesDataReturnJson;
+        }
     }
 }

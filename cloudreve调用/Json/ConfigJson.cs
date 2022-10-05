@@ -1,52 +1,13 @@
-﻿namespace cloudreve调用.Json
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace cloudreve调用.Json
 {
-    internal class LoginJson
+    internal class ConfigJson
     {
-        /// <summary>
-        /// 登入资料处理Json
-        /// </summary>
-        public class LoginDataJson
-        {
-            /// <summary>
-            /// 账号
-            /// </summary>
-            public string? UserName { get; set; }
-            /// <summary>
-            /// 密码
-            /// </summary>
-            public string? Password { get; set; }
-            /// <summary>
-            /// 二步验证 没有留空即可
-            /// </summary>
-            public string? CaptchaCode { get; set; }
-            /// <summary>
-            /// 合成登入信息
-            /// </summary>
-            /// <param name="LoginJson">传入登入信息</param>
-            /// <returns>string 类型 登入Json信息</returns>
-            public static string LoginReturnJson(LoginDataJson LoginJson)
-            {
-                return System.Text.Json.JsonSerializer.Serialize(LoginJson);
-            }
-            /// <summary>
-            /// 合成登入信息
-            /// </summary>
-            /// <param name="UserName">账号</param>
-            /// <param name="Password">密码</param>
-            /// <param name="CaptchaCode">二步验证 没有留空即可</param>
-            /// <returns>string 类型 登入Json信息</returns>
-            public static string LoginReturnJson(string UserName, string Password, string CaptchaCode)
-            {
-                return LoginReturnJson(new LoginDataJson() { UserName = UserName, Password = Password, CaptchaCode = CaptchaCode });//合成登入Json
-            }
-            /// <summary>
-            /// 合成登入信息
-            /// </summary>
-            public string LoginReturnJson()
-            {
-                return LoginReturnJson(this);//合成登入Json
-            }
-        }
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
         public class @group
         {
@@ -55,7 +16,7 @@
             /// </summary>
             public int id { get; set; }
             /// <summary>
-            /// 名字
+            /// 名子
             /// </summary>
             public string name { get; set; }
             /// <summary>
@@ -67,7 +28,7 @@
             /// </summary>
             public bool allowRemoteDownload { get; set; }
             /// <summary>
-            /// 允许下载档案
+            /// 允许档案下载
             /// </summary>
             public bool allowArchiveDownload { get; set; }
             /// <summary>
@@ -88,7 +49,7 @@
             public int sourceBatch { get; set; }
         }
 
-        public class Data
+        public class User
         {
             /// <summary>
             /// ID
@@ -103,11 +64,11 @@
             /// </summary>
             public string nickname { get; set; }
             /// <summary>
-            /// 状态
+            /// 身份
             /// </summary>
             public int status { get; set; }
             /// <summary>
-            /// 阿凡达????
+            /// 阿凡达?????
             /// </summary>
             public string avatar { get; set; }
             /// <summary>
@@ -119,7 +80,7 @@
             /// </summary>
             public string preferred_theme { get; set; }
             /// <summary>
-            /// 匿名的
+            /// 匿名
             /// </summary>
             public bool anonymous { get; set; }
             /// <summary>
@@ -131,10 +92,78 @@
             /// </summary>
             public List<string> tags { get; set; }
         }
+
+        public class Data
+        {
+            /// <summary>
+            /// 标题
+            /// </summary>
+            public string title { get; set; }
+            /// <summary>
+            /// 网站简介
+            /// </summary>
+            public string siteICPId { get; set; }
+            /// <summary>
+            /// 登录验证码
+            /// </summary>
+            public bool loginCaptcha { get; set; }
+            /// <summary>
+            /// 注册验证码
+            /// </summary>
+            public bool regCaptcha { get; set; }
+            /// <summary>
+            /// 遗忘验证码
+            /// </summary>
+            public bool forgetCaptcha { get; set; }
+            /// <summary>
+            /// 电子邮件状态
+            /// </summary>
+            public bool emailActive { get; set; }
+            /// <summary>
+            /// 主题
+            /// </summary>
+            public string themes { get; set; }
+            /// <summary>
+            /// 默认主题
+            /// </summary>
+            public string defaultTheme { get; set; }
+            /// <summary>
+            /// 展示方法
+            /// </summary>
+            public string home_view_method { get; set; }
+            /// <summary>
+            /// 分享_查看方法
+            /// </summary>
+            public string share_view_method { get; set; }
+            /// <summary>
+            /// 签名
+            /// </summary>
+            public bool authn { get; set; }
+            /// <summary>
+            /// 用户
+            /// </summary>
+            public User user { get; set; }
+            /// <summary>
+            /// 验证码识别码
+            /// </summary>
+            public string captcha_ReCaptchaKey { get; set; }
+            /// <summary>
+            /// 验证码类型
+            /// </summary>
+            public string captcha_type { get; set; }
+            /// <summary>
+            /// 外部身份验证?
+            /// </summary>
+            public string tcaptcha_captcha_app_id { get; set; }
+            /// <summary>
+            /// 注册启用
+            /// </summary>
+            public bool registerEnabled { get; set; }
+        }
         /// <summary>
-        /// 登入服务器返回Json
+        /// 获取Config返回Json
         /// </summary>
-        public class LoginReturnJson
+        public class ConfigReturnJson
         {
             /// <summary>
             /// 响应代号
