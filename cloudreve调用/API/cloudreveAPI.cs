@@ -1,18 +1,21 @@
 ﻿using LoongEgg.LoongLogger;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
-using static cloudreve调用.Json.ConfigJson;
-using static cloudreve调用.Json.DeleteFiles;
-using static cloudreve调用.Json.DeleteUpFileListJson;
-using static cloudreve调用.Json.DirectoryDataJson;
-using static cloudreve调用.Json.DownloadJson;
-using static cloudreve调用.Json.FileSourceJson;
-using static cloudreve调用.Json.LoginJson;
-using static cloudreve调用.Json.UploadFilesJson;
-using static cloudreve调用.MODS.NetworkRequest;
+using static cloudreve.Json.CloudDriveSizeJson;
+using static cloudreve.Json.ConfigJson;
+using static cloudreve.Json.DeleteFiles;
+using static cloudreve.Json.DeleteUpFileListJson;
+using static cloudreve.Json.DirectoryDataJson;
+using static cloudreve.Json.DownloadJson;
+using static cloudreve.Json.FilesDataJson;
+using static cloudreve.Json.FileShareJson;
+using static cloudreve.Json.FileSourceJson;
+using static cloudreve.Json.LoginJson;
+using static cloudreve.Json.UploadFilesJson;
+using static cloudreve.MODS.ConsolePrint;
+using static cloudreve.MODS.NetworkRequest;
 
-namespace cloudreve调用.API
+namespace cloudreve.API
 {
     /// <summary>
     /// Cloudreve API 调用
@@ -96,11 +99,11 @@ namespace cloudreve调用.API
                 PUT_UploadFilesReturnJson? PUT_UploadFilesReturnJson = JsonSerializer.Deserialize<PUT_UploadFilesReturnJson>(UploadReturnJson);
                 if (PUT_UploadFilesReturnJson?.code != 0)
                 {
-                    Logger.WriteError("上传失败(PUT)!因为:" + PUT_UploadFilesReturnJson?.msg + " #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);//打印至日志
+                    Logger.WriteError("上传失败(PUT)!因为:" + PUT_UploadFilesReturnJson?.msg + " #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);//打印至日志
                     if (ScreenOut)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("上传失败(PUT)!因为:" + PUT_UploadFilesReturnJson?.msg + " #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
+                        Console.WriteLine("上传失败(PUT)!因为:" + PUT_UploadFilesReturnJson?.msg + " #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
                         Console.ForegroundColor = ConsoleColor.White;
                     }
                     return UploadJson;
@@ -114,8 +117,8 @@ namespace cloudreve调用.API
                 FileStream fs = new FileStream(FilesPath, FileMode.Open, FileAccess.Read);//打开文件
                 long left = fs.Length;//尚未读取的文件内容长度
                 long Remaining = 0;//分片末尾剩余
-                if (new System.IO.FileInfo(FilesPath).Length < PUT_UploadFilesReturnJson.data?.chunkSize)//判断文件大小是否超过分片大小
-                    bytes = new byte[new System.IO.FileInfo(FilesPath).Length];
+                if (new FileInfo(FilesPath).Length < PUT_UploadFilesReturnJson.data?.chunkSize)//判断文件大小是否超过分片大小
+                    bytes = new byte[new FileInfo(FilesPath).Length];
                 else
                 {
                     bytes = new byte[(int)PUT_UploadFilesReturnJson.data?.chunkSize!];
@@ -148,7 +151,7 @@ namespace cloudreve调用.API
                 for (int i = 0; i < SliceCache.Count; i++)
                 {
                     HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/file/upload/" + sessionID + "/" + i, cookie: cookie, httpMod: HttpMods.POST_UPDATA, dataByte: SliceCache[i]);
-                    Logger.WriteInfor("上传成功!(POST) 任务ID:" + sessionID + " 分片:" + i + " #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
+                    Logger.WriteInfor("上传成功!(POST) 任务ID:" + sessionID + " 分片:" + i + " #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
                 }
             }
             else
@@ -170,11 +173,11 @@ namespace cloudreve调用.API
             POST_UploadFilesReturnJson? POST_UploadFilesReturnJson = JsonSerializer.Deserialize<POST_UploadFilesReturnJson>(HttpRequestToStringData);
             if (POST_UploadFilesReturnJson?.code != 0)
             {
-                Logger.WriteError("上传失败(POST)!因为:" + POST_UploadFilesReturnJson?.msg + " 任务ID:" + sessionID + " #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);//打印至日志
+                Logger.WriteError("上传失败(POST)!因为:" + POST_UploadFilesReturnJson?.msg + " 任务ID:" + sessionID + " #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);//打印至日志
                 if (ScreenOut)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("上传失败(POST)!因为:" + POST_UploadFilesReturnJson?.msg + " 任务ID:" + sessionID + " #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
+                    Console.WriteLine("上传失败(POST)!因为:" + POST_UploadFilesReturnJson?.msg + " 任务ID:" + sessionID + " #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
                     Console.ForegroundColor = ConsoleColor.White;
                 }
                 if (POST_UploadFilesReturnJson?.code == 400011)//如果找不到任物就回传null
@@ -183,9 +186,9 @@ namespace cloudreve调用.API
                 }
                 return sessionID;
             }
-            Logger.WriteInfor("上传任务完成! #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
+            Logger.WriteInfor("上传任务完成! #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
             if (ScreenOut)
-                Console.WriteLine("上传任务完成! #文件名:" + System.IO.Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
+                Console.WriteLine("上传任务完成! #文件名:" + Path.GetFileName(FilesPath) + " 本地路径" + Path.GetDirectoryName(FilesPath) + " 云盘路径:" + CloudFilesPath);
             return HttpRequestToStringData;
         }
         /// <summary>
@@ -273,6 +276,8 @@ namespace cloudreve调用.API
                 return DirectoryDataReturnJson;
             }
             Logger.WriteInfor("获取目录成功!" + " 目录:" + Directory);
+            if (ScreenOut)
+                Console.WriteLine("获取目录成功!" + " 目录:" + Directory);
             return DirectoryDataReturnJson;
         }
         /// <summary>
@@ -310,6 +315,8 @@ namespace cloudreve调用.API
                 return DownloadReturnJson;
             }
             Logger.WriteInfor("获取下载文件URL成功!" + " 文件ID:" + ID);
+            if (ScreenOut)
+                Console.WriteLine("获取下载文件URL成功!" + " 文件ID:" + ID);
             return DownloadReturnJson;
         }
         /// <summary>
@@ -351,8 +358,54 @@ namespace cloudreve调用.API
                 return FileSourceDataReturnJson;
             }
             Logger.WriteInfor("获取文件外链成功!" + " 文件ID:" + ReturnString);
+            if (ScreenOut)
+                Console.WriteLine("获取文件外链成功!" + " 文件ID:" + ReturnString);
             return FileSourceDataReturnJson;
         }//同时生成多个无法准确判断具体哪个没有正确生成
+        /// <summary>
+        /// 获取文件分享链接
+        /// </summary>
+        /// <param name="Url">Cloudreve服务器地址</param>
+        /// <param name="cookie">登入返还的Cookie</param>
+        /// <param name="ID">文件ID</param>
+        /// <param name="is_dir">是否为文件夹</param>
+        /// <param name="password">密码</param>
+        /// <param name="downloads">下载多少次过期</param>
+        /// <param name="expire">过期时间</param>
+        /// <param name="preview">是否允许预览</param>
+        /// <param name="ScreenOut">屏幕显示输出</param>
+        /// <returns>FileSourceDataReturnJson 类型 返回内容</returns>
+        public static FileShareDataReturnJson? GetFileShare(string Url, string? cookie, string ID, bool is_dir = false, string? password = null, int downloads = -1, int expire = 86400, bool preview = true, bool ScreenOut = true)
+        {
+            string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/share", cookie, data: FileShareDataJson.FileShareDataReturnJson(ID, is_dir, password, downloads, expire, preview), httpMod: HttpMods.POST);
+            if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+            {
+                Logger.WriteError("发送获取文件分享链接失败(POST)!因为上面的原因...");//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("发送获取文件分享链接失败(POST)!因为上面的原因...");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return null;
+            }
+            FileShareDataReturnJson? FileShareDataReturnJson = JsonSerializer.Deserialize<FileShareDataReturnJson>(HttpRequestToStringData);
+            if (FileShareDataReturnJson?.code != 0)
+            {
+                Logger.WriteError("获取文件分享链接失败(POST)!因为:" + FileShareDataReturnJson?.msg);//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("获取文件分享链接失败(POST)!因为:" + FileShareDataReturnJson?.msg);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return FileShareDataReturnJson;
+            }
+            Logger.WriteInfor("获取文件分享链接成功! 地址:" + FileShareDataReturnJson.data);
+            if (ScreenOut)
+                Console.WriteLine("获取文件分享链接成功! 地址:" + FileShareDataReturnJson.data);
+            return FileShareDataReturnJson;
+        }
         /// <summary>
         /// 获取Config
         /// </summary>
@@ -387,6 +440,8 @@ namespace cloudreve调用.API
                 return ConfigReturnJson;
             }
             Logger.WriteInfor("获取Config成功! 组别:" + ConfigReturnJson.data?.user.group.name + " 用户名:" + ConfigReturnJson.data?.user.user_name + " 别名:" + ConfigReturnJson.data?.user.nickname);
+            if (ScreenOut)
+                Console.WriteLine("获取Config成功! 组别:" + ConfigReturnJson.data?.user.group.name + " 用户名:" + ConfigReturnJson.data?.user.user_name + " 别名:" + ConfigReturnJson.data?.user.nickname);
             return ConfigReturnJson;
         }
         /// <summary>
@@ -400,7 +455,7 @@ namespace cloudreve调用.API
         /// <returns>ConfigReturnJson 类型 返回内容</returns>
         public static DeleteFilesDataReturnJson? DeleteFiles(string Url, string? cookie, List<string>? FilesID = null, List<string>? DirsID = null, bool ScreenOut = true)
         {
-            string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/object", cookie,data: DeleteFilesDataJson.DeleteFilesDataReturnJson(new() { items = FilesID, dirs = FilesID }), httpMod: HttpMods.DELETE);
+            string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/object", cookie, data: DeleteFilesDataJson.DeleteFilesDataReturnJson(new() { items = FilesID, dirs = FilesID }), httpMod: HttpMods.DELETE);
             if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
             {
                 Logger.WriteError("发送删除文件请求失败(DELETE)!因为上面的原因...");//打印至日志
@@ -425,7 +480,101 @@ namespace cloudreve调用.API
                 return DeleteFilesDataReturnJson;
             }
             Logger.WriteInfor("删除文件成功!");
+            if (ScreenOut)
+                Console.WriteLine("删除文件成功!");
             return DeleteFilesDataReturnJson;
+        }
+        /// <summary>
+        /// 获取文件详细信息
+        /// </summary>
+        /// <param name="Url">Cloudreve服务器地址</param>
+        /// <param name="cookie">登入返还的Cookie</param>
+        /// <param name="FilesID">要查询的文件ID</param>
+        /// <param name="DirsID">要查询的文件夹ID</param>
+        /// <param name="trace_root">文件路径跟踪</param>
+        /// <param name="ScreenOut">屏幕显示输出</param>
+        /// <returns>FilesDataReturnJson 类型 返回内容</returns>
+        public static FilesDataReturnJson? GetFilesData(string Url, string? cookie, string? FilesID = null, string? DirsID = null, bool trace_root = true, bool ScreenOut = true)
+        {
+            string? HttpRequestToStringData = HttpRequestToString(UrlSynthesis(), cookie, httpMod: HttpMods.GET);
+            if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+            {
+                Logger.WriteError("发送获取文件信息请求失败(GET)!因为上面的原因...");//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("发送获取文件信息请求失败(GET)!因为上面的原因...");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return null;
+            }
+            FilesDataReturnJson? FilesDataReturnJson = JsonSerializer.Deserialize<FilesDataReturnJson>(HttpRequestToStringData);
+            if (FilesDataReturnJson?.code != 0)
+            {
+                Logger.WriteError("获取文件信息失败(GET)!因为:" + FilesDataReturnJson?.msg + " ID:" + new string(DirsID ?? FilesID));//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("获取文件信息失败(GET)!因为:" + FilesDataReturnJson?.msg + " ID:" + new string(DirsID ?? FilesID));
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return FilesDataReturnJson;
+            }
+            Logger.WriteInfor("获取文件信息成功! ID:" + new string(DirsID ?? FilesID));
+            if (ScreenOut)
+                Console.WriteLine("获取文件信息成功! ID:" + new string(DirsID ?? FilesID));
+            return FilesDataReturnJson;
+
+            string UrlSynthesis()//Url合成
+            {
+                if (FilesID != null && DirsID == null)
+                {
+                    return Url += "/api/v3/object/property/" + FilesID + "?is_folder=false" + "&trace_root=" + trace_root;
+                }
+                if (FilesID == null && DirsID != null)
+                {
+                    return Url += "/api/v3/object/property/" + DirsID + "?is_folder=true" + "&trace_root=" + trace_root;
+                }
+                return "啥?你全都要??";
+            }
+        }
+        /// <summary>
+        /// 获取云盘容量
+        /// </summary>
+        /// <param name="Url">Cloudreve服务器地址</param>
+        /// <param name="cookie">登入返还的Cookie</param>
+        /// <param name="ScreenOut">屏幕显示输出</param>
+        /// <returns>ConfigReturnJson 类型 返回内容</returns>
+        public static CloudDriveSizeReturnJson? GetCloudDriveSize(string Url, string? cookie, bool ScreenOut = true)
+        {
+            string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/user/storage", cookie, httpMod: HttpMods.GET);
+            if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+            {
+                Logger.WriteError("发送获取云盘容量求失败(GET)!因为上面的原因...");//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("发送获取云盘容量请求失败(GET)!因为上面的原因...");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return null;
+            }
+            CloudDriveSizeReturnJson? CloudDriveSizeReturnJson = JsonSerializer.Deserialize<CloudDriveSizeReturnJson>(HttpRequestToStringData);
+            if (CloudDriveSizeReturnJson?.code != 0)
+            {
+                Logger.WriteError("获取云盘容量失败(GET)!因为:" + CloudDriveSizeReturnJson?.msg);//打印至日志
+                if (ScreenOut)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("获取云盘容量失败(GET)!因为:" + CloudDriveSizeReturnJson?.msg);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                return CloudDriveSizeReturnJson;
+            }
+            Logger.WriteInfor("获取云盘容量成功! 总容量:" + SizeConversion.AutoSizeConversion(CloudDriveSizeReturnJson.data?.total) + " 已使用:" + SizeConversion.AutoSizeConversion(CloudDriveSizeReturnJson.data?.used));
+            if (ScreenOut)
+                Console.WriteLine("获取云盘容量成功! 总容量:" + SizeConversion.AutoSizeConversion(CloudDriveSizeReturnJson.data?.total) + " 已使用:" + SizeConversion.AutoSizeConversion(CloudDriveSizeReturnJson.data?.used));
+            return CloudDriveSizeReturnJson;
         }
     }
 }

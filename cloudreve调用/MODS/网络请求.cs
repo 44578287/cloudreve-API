@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Text;
 
-namespace cloudreve调用.MODS
+namespace cloudreve.MODS
 {
     internal class NetworkRequest
     {

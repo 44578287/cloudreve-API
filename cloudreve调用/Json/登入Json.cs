@@ -1,4 +1,4 @@
-﻿namespace cloudreve调用.Json
+﻿namespace cloudreve.Json
 {
     internal class LoginJson
     {

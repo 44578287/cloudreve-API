@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static cloudreve调用.Json.FileSourceJson;
+using static cloudreve.Json.FileSourceJson;
 
-namespace cloudreve调用.Json
+namespace cloudreve.Json
 {
     internal class DeleteFiles
     {
@@ -25,7 +25,7 @@ namespace cloudreve调用.Json
             public List<string>? dirs { get; set; }
             public string? DeleteFilesDataReturnJson()
             {
-                return System.Text.Json.JsonSerializer.Serialize<DeleteFilesDataJson>(this);
+                return System.Text.Json.JsonSerializer.Serialize(this);
             }
             public static string? DeleteFilesDataReturnJson(DeleteFilesDataJson data)
             {

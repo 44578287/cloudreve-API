@@ -1,6 +1,6 @@
 ﻿using static System.Net.Mime.MediaTypeNames;
 
-namespace cloudreve调用.Json
+namespace cloudreve.Json
 {
     internal class UploadFilesJson
     {
@@ -37,7 +37,7 @@ namespace cloudreve调用.Json
             /// <returns>long 类型 文件大小</returns>
             public long Size(string FilesPath)
             {
-                return size = new System.IO.FileInfo(FilesPath).Length;
+                return size = new FileInfo(FilesPath).Length;
             }
             /// <summary>
             /// 获取文件名
@@ -46,7 +46,7 @@ namespace cloudreve调用.Json
             /// <returns>string 类型 文件名称</returns>
             public string Name(string FilesPath)
             {
-                return name = System.IO.Path.GetFileName(FilesPath);
+                return name = Path.GetFileName(FilesPath);
             }
             /// <summary>
             /// 合成上传信息Json
@@ -66,7 +66,7 @@ namespace cloudreve调用.Json
             /// <returns>string 类型 上传信息</returns>
             public string? Updata(string FilesPath, string policy, string CloudFilesPath = "/")
             {
-                if(File.Exists(FilesPath))
+                if (File.Exists(FilesPath))
                 {
                     path = CloudFilesPath;
                     Name(FilesPath);

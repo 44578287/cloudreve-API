@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace cloudreve调用.Json
+namespace cloudreve.Json
 {
     internal class DirectoryDataJson
     {

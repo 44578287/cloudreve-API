@@ -1,6 +1,4 @@
-﻿
-
-namespace cloudreve调用.Json
+﻿namespace cloudreve.Json
 {
     internal class FileSourceJson
     {
@@ -15,8 +13,8 @@ namespace cloudreve调用.Json
             /// </summary>
             public List<string>? items { get; set; }
             public string? FileSourceDataReturnJson()
-            { 
-                return System.Text.Json.JsonSerializer.Serialize<FileSourceDataJson>(this);
+            {
+                return System.Text.Json.JsonSerializer.Serialize(this);
             }
             public static string? FileSourceDataReturnJson(List<string>? items)
             {

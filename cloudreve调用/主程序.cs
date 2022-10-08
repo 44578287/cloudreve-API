@@ -1,13 +1,13 @@
-﻿using cloudreve调用.API;
+﻿using cloudreve.API;
 using LoongEgg.LoongLogger;
 using System;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using static cloudreve调用.Json.FileSourceJson;
-using static cloudreve调用.Json.LoginJson;
-using static cloudreve调用.Json.UploadFilesJson;
-using static cloudreve调用.MODS.NetworkRequest;
+using static cloudreve.Json.FileSourceJson;
+using static cloudreve.Json.LoginJson;
+using static cloudreve.Json.UploadFilesJson;
+using static cloudreve.MODS.NetworkRequest;
 
 Logger.Enable(LoggerType.Console | LoggerType.Debug, LoggerLevel.Debug);//注册Log日志函数
 
@@ -16,7 +16,7 @@ string? Cookie = null;
 LoginDataJson logindata = new()
 {
     UserName = "g9964957@gmail.com",
-    Password = "SUao445782871",
+    Password = "admin",
     CaptchaCode = ""
 };
 
@@ -51,4 +51,10 @@ Console.WriteLine(strings.Exists(strings => strings == "5"));
 Console.WriteLine(strings.Find(strings => strings == "7"));*/
 
 //Console.WriteLine(CloudreveAPI.GetConfig(ApiUrl, Cookie)?.data?.user.user_name);
-Console.WriteLine(CloudreveAPI.DeleteFiles(ApiUrl, Cookie, new() { "yOWSD" }));
+//Console.WriteLine(CloudreveAPI.DeleteFiles(ApiUrl, Cookie, new() { "yOWSD" }));
+
+//Console.WriteLine(CloudreveAPI.GetFilesData(ApiUrl, Cookie,FilesID: "kOfE"));
+
+
+//Console.WriteLine(CloudreveAPI.GetCloudDriveSize(ApiUrl, Cookie));
+Console.WriteLine(CloudreveAPI.GetFileShare(ApiUrl, Cookie,"ePhm"));
