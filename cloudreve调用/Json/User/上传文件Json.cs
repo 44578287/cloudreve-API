@@ -1,6 +1,6 @@
 ﻿using static System.Net.Mime.MediaTypeNames;
 
-namespace cloudreve.Json
+namespace cloudreve.Json.User
 {
     internal class UploadFilesJson
     {

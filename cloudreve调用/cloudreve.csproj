@@ -16,8 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Json\Admin\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="LoongEgg.LoongLogger">
-      <HintPath>..\..\LoongLog-master1\LoongEgg.LoongLogger\bin\Debug\LoongEgg.LoongLogger.dll</HintPath>
+      <HintPath>..\..\..\..\Users\g9964\Desktop\云盘测试\云盘调用\云盘调用\DLL\LoongEgg.LoongLogger.dll</HintPath>
     </Reference>
   </ItemGroup>
 

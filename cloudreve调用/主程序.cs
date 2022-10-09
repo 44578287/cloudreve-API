@@ -4,9 +4,10 @@ using System;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using static cloudreve.Json.FileSourceJson;
+using static cloudreve.Json.User.FileShareShowJson;
+using static cloudreve.Json.User.FileSourceJson;
 using static cloudreve.Json.LoginJson;
-using static cloudreve.Json.UploadFilesJson;
+using static cloudreve.Json.User.UploadFilesJson;
 using static cloudreve.MODS.NetworkRequest;
 
 Logger.Enable(LoggerType.Console | LoggerType.Debug, LoggerLevel.Debug);//注册Log日志函数
@@ -57,4 +58,9 @@ Console.WriteLine(strings.Find(strings => strings == "7"));*/
 
 
 //Console.WriteLine(CloudreveAPI.GetCloudDriveSize(ApiUrl, Cookie));
-Console.WriteLine(CloudreveAPI.GetFileShare(ApiUrl, Cookie,"ePhm"));
+//Console.WriteLine(CloudreveAPI.GetFileShare(ApiUrl, Cookie,"ePhm"));
+//Console.WriteLine(CloudreveAPI.GetFileShareShow(ApiUrl, Cookie));
+//Console.WriteLine(CloudreveAPI.SetFileShare(ApiUrl, Cookie, "gmtv",Settings: Settings.preview_enabled,"true"));
+//Console.WriteLine(CloudreveAPI.DeltetFileShare(ApiUrl, Cookie, ""));
+//Console.WriteLine(CloudreveAPI.FileSearch(ApiUrl, Cookie, "132", "文件夹"));
+//Console.WriteLine(CloudreveAPI.ShareSearch(ApiUrl, Cookie,"png"));

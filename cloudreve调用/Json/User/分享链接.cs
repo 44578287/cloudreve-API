@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static cloudreve.Json.FileSourceJson;
+using static cloudreve.Json.User.FileSourceJson;
 
-namespace cloudreve.Json
+namespace cloudreve.Json.User
 {
     internal class FileShareJson
     {
+        /// <summary>
+        /// 获取分享链接合成Json
+        /// </summary>
         public class FileShareDataJson
         {
             /// <summary>
@@ -44,6 +47,9 @@ namespace cloudreve.Json
                 return System.Text.Json.JsonSerializer.Serialize<FileShareDataJson>(new() { id = ID, is_dir = is_dir, password = password, downloads = downloads, expire = expire, preview = preview });
             }
         }
+        /// <summary>
+        /// 获取分享链接返回Json
+        /// </summary>
         public class FileShareDataReturnJson
         {
             /// <summary>

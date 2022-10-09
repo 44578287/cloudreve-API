@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static cloudreve.Json.FileSourceJson;
+using static cloudreve.Json.User.FileSourceJson;
 
-namespace cloudreve.Json
+namespace cloudreve.Json.User
 {
     internal class DeleteFiles
     {

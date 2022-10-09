@@ -1,4 +1,4 @@
-﻿namespace cloudreve.Json
+﻿namespace cloudreve.Json.User
 {
     internal class FileSourceJson
     {

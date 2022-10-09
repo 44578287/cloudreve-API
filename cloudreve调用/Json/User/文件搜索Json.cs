@@ -4,50 +4,64 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace cloudreve.Json
+namespace cloudreve.Json.User
 {
-    internal class FilesDataJson
+    internal class FileSearchJson
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-        public class Data
+        public class ObjectsItem
         {
             /// <summary>
-            /// 创建时间
+            /// 文件ID
             /// </summary>
-            public string created_at { get; set; }
+            public string id { get; set; }
             /// <summary>
-            /// 更新日期
+            /// 文件名
             /// </summary>
-            public string updated_at { get; set; }
+            public string name { get; set; }
             /// <summary>
-            /// 存储策略
-            /// </summary>
-            public string policy { get; set; }
-            /// <summary>
-            /// 大小
-            /// </summary>
-            public int size { get; set; }
-            /// <summary>
-            /// 子文件夹编号
-            /// </summary>
-            public int child_folder_num { get; set; }
-            /// <summary>
-            /// 文件号??
-            /// </summary>
-            public int child_file_num { get; set; }
-            /// <summary>
-            /// 路径
+            /// 所在路径
             /// </summary>
             public string path { get; set; }
             /// <summary>
-            /// 查询_日期
+            /// 像素 (*,*)
             /// </summary>
-            public string query_date { get; set; }
+            public string pic { get; set; }
+            /// <summary>
+            /// 文件大小
+            /// </summary>
+            public int size { get; set; }
+            /// <summary>
+            /// 文件类型
+            /// </summary>
+            public string type { get; set; }
+            /// <summary>
+            /// 上传时间
+            /// </summary>
+            public string date { get; set; }
+            /// <summary>
+            /// 创建日期
+            /// </summary>
+            public string create_date { get; set; }
+            /// <summary>
+            /// 启用来源
+            /// </summary>
+            public bool source_enabled { get; set; }
         }
-        /// <summary>
-        /// 获取文件信息返回Json
-        /// </summary>
-        public class FilesDataReturnJson
+
+        public class Data
+        {
+            /// <summary>
+            /// 搜索到的文件
+            /// </summary>
+            public List<ObjectsItem>? objects { get; set; }
+            /// <summary>
+            /// 父类
+            /// </summary>
+            public int parent { get; set; }
+        }
+
+        public class FileSearchReturnJson
         {
             /// <summary>
             /// 响应代号

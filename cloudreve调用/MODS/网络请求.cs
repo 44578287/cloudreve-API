@@ -36,6 +36,9 @@ namespace cloudreve.MODS
                     case "POST":
                         contentType = "application/x-www-form-urlencoded";
                         break;
+                    case "PATCH":
+                        contentType = "application/json";
+                        break;
                     case "POST_UPDATA":
                         contentType = "multipart/form-data;charset=utf-8";
                         request.AllowWriteStreamBuffering = false;
@@ -132,6 +135,9 @@ namespace cloudreve.MODS
                     case "POST":
                         contentType = "application/x-www-form-urlencoded";
                         break;
+                    case "PATCH":
+                        contentType = "application/json";
+                        break;
                     case "POST_UPDATA":
                         contentType = "multipart/form-data;charset=utf-8";
                         request.AllowWriteStreamBuffering = false;
@@ -226,7 +232,12 @@ namespace cloudreve.MODS
             /// DELTE请求
             /// </summary>
             [Description("DELTE")]
-            DELETE
+            DELETE,
+            /// <summary>
+            /// PATCH请求
+            /// </summary>
+            [Description("PATCH")]
+            PATCH
         }
         /// <summary>
         /// 接收web回传内容
