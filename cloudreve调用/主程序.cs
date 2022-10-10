@@ -64,3 +64,7 @@ Console.WriteLine(strings.Find(strings => strings == "7"));*/
 //Console.WriteLine(CloudreveAPI.DeltetFileShare(ApiUrl, Cookie, ""));
 //Console.WriteLine(CloudreveAPI.FileSearch(ApiUrl, Cookie, "132", "文件夹"));
 //Console.WriteLine(CloudreveAPI.ShareSearch(ApiUrl, Cookie,"png"));
+
+//Console.WriteLine(CloudreveAPI.Admin.GetGroupsList(ApiUrl, Cookie));
+//Console.WriteLine(CloudreveAPI.Admin.GetGroups(ApiUrl, Cookie));
+Console.WriteLine(CloudreveAPI.Admin.GetUserList(ApiUrl, Cookie));

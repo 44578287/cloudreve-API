@@ -59,11 +59,11 @@ namespace cloudreve.Json.User
             /// <summary>
             /// 分享Url
             /// </summary>
-            public string data { get; set; }
+            public string? data { get; set; }
             /// <summary>
             /// 反馈信息
             /// </summary>
-            public string msg { get; set; }
+            public string? msg { get; set; }
         }
 
     }

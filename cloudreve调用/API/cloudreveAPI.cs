@@ -1,9 +1,12 @@
-﻿using LoongEgg.LoongLogger;
-using Newtonsoft.Json.Linq;
+﻿using cloudreve.Json.Admin;
+using LoongEgg.LoongLogger;
 using System.ComponentModel;
 using System.Net;
-using System.Net.Mime;
 using System.Text.Json;
+using static cloudreve.Json.Admin.GroupsJson;
+using static cloudreve.Json.Admin.GroupsListJson;
+using static cloudreve.Json.Admin.UserListJson;
+using static cloudreve.Json.LoginJson;
 using static cloudreve.Json.User.CloudDriveSizeJson;
 using static cloudreve.Json.User.ConfigJson;
 using static cloudreve.Json.User.DeleteFiles;
@@ -15,7 +18,6 @@ using static cloudreve.Json.User.FileSearchJson;
 using static cloudreve.Json.User.FileShareJson;
 using static cloudreve.Json.User.FileShareShowJson;
 using static cloudreve.Json.User.FileSourceJson;
-using static cloudreve.Json.LoginJson;
 using static cloudreve.Json.User.ShareSearchJson;
 using static cloudreve.Json.User.UploadFilesJson;
 using static cloudreve.MODS.ConsolePrint;
@@ -739,7 +741,7 @@ namespace cloudreve.API
             /// <param name="name">要搜索的文件名</param>
             /// <param name="CloudFilesPath">搜索的目录</param>
             /// <param name="ScreenOut">屏幕显示输出</param>
-            /// <returns>CloudDriveSizeReturnJson 类型 返回内容</returns>
+            /// <returns>FileSearchReturnJson 类型 返回内容</returns>
             public static FileSearchReturnJson? FileSearch(string Url, string? cookie, string name, string CloudFilesPath = "", bool ScreenOut = true)
             {
                 string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/file/search/keywords%2F" + name + "?path=%2F" + CloudFilesPath, cookie, httpMod: HttpMods.GET);
@@ -780,7 +782,7 @@ namespace cloudreve.API
             /// <param name="page">页数</param>
             /// <param name="Sort">排序方式</param>
             /// <param name="ScreenOut">屏幕显示输出</param>
-            /// <returns>CloudDriveSizeReturnJson 类型 返回内容</returns>
+            /// <returns>ShareSearchReturnJson 类型 返回内容</returns>
             public static ShareSearchReturnJson? ShareSearch(string Url, string? cookie, string name, int page = 1, Sort Sort = Sort.CreationDateFromLateToEarly, bool ScreenOut = true)
             {
                 string? UrlData = null;
@@ -838,10 +840,148 @@ namespace cloudreve.API
         /// <summary>
         /// 管理员操作
         /// </summary>
-        public class Admin 
+        public class Admin
         {
-        
-        
+            /// <summary>
+            /// 获取用户组定义列表
+            /// </summary>
+            /// <param name="Url">Cloudreve服务器地址</param>
+            /// <param name="cookie">登入返还的Cookie</param>
+            /// <param name="page">页数</param>
+            /// <param name="page_size">一页所展示的数量</param>
+            /// <param name="Sort">排序方式</param>
+            /// <param name="ScreenOut">屏幕显示输出</param>
+            /// <returns>GroupsListDataReturnJson 类型 返回内容</returns>
+            public static GroupsListDataReturnJson? GetGroupsList(string Url, string? cookie, int page = 1, int page_size = 999, GroupsListJson.Sort Sort = GroupsListJson.Sort.id_desc, bool ScreenOut = true)
+            {
+                string UrlData = "";
+                switch (Sort.ToString())
+                {
+                    case "id_desc":
+                        UrlData = "id desc";
+                        break;
+                    case "id_asc":
+                        UrlData = "id asc";
+                        break;
+                }
+                string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/admin/group/list", cookie, data: GroupsListDataJson.GroupsListDataReturnJson(page, page_size, UrlData), httpMod: HttpMods.POST);
+                if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+                {
+                    Logger.WriteError("发送获取用户组定义列表请求失败(POST)!因为上面的原因...");//打印至日志
+                    if (ScreenOut)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("发送获取用户组定义列表请求失败(POST)!因为上面的原因...");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    return null;
+                }
+                GroupsListDataReturnJson? GroupsListDataReturnJson = JsonSerializer.Deserialize<GroupsListDataReturnJson>(HttpRequestToStringData);
+                if (GroupsListDataReturnJson?.code != 0)
+                {
+                    Logger.WriteError("获取用户组定义列表失败(POST)!因为:" + GroupsListDataReturnJson?.msg);//打印至日志
+                    if (ScreenOut)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("获取用户组定义列表失败(POST)!因为:" + GroupsListDataReturnJson?.msg);
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    return GroupsListDataReturnJson;
+                }
+                Logger.WriteInfor("获取用户组定义列表成功! 共有" + GroupsListDataReturnJson?.data?.total + "个用户组");
+                if (ScreenOut)
+                    Console.WriteLine("获取用户组定义列表成功! 共有" + GroupsListDataReturnJson?.data?.total + "个用户组");
+                return GroupsListDataReturnJson;
+            }//尚未完成Json表定义 Policiesr及Statics
+            /// <summary>
+            /// 获取用户列表
+            /// </summary>
+            /// <param name="Url">Cloudreve服务器地址</param>
+            /// <param name="cookie">登入返还的Cookie</param>
+            /// <param name="ScreenOut">屏幕显示输出</param>
+            /// <returns>GroupsReturnJson 类型 返回内容</returns>
+            public static GroupsReturnJson? GetGroups(string Url, string? cookie, bool ScreenOut = true)
+            {
+                string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/admin/groups", cookie, httpMod: HttpMods.GET);
+                if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+                {
+                    Logger.WriteError("发送获取用户组请求失败(GET)!因为上面的原因...");//打印至日志
+                    if (ScreenOut)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("发送获取用户组请求失败(GET)!因为上面的原因...");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    return null;
+                }
+                GroupsReturnJson? GroupsReturnJson = JsonSerializer.Deserialize<GroupsReturnJson>(HttpRequestToStringData);
+                if (GroupsReturnJson?.code != 0)
+                {
+                    Logger.WriteError("获取用户组失败(GET)!因为:" + GroupsReturnJson?.msg);//打印至日志
+                    if (ScreenOut)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("获取用户组失败(GET)!因为:" + GroupsReturnJson?.msg);
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    return GroupsReturnJson;
+                }
+                Logger.WriteInfor("获取用户组成功! 共有" + GroupsReturnJson?.data?.Count + "个用户组");
+                if (ScreenOut)
+                    Console.WriteLine("获取用户组成功! 共有" + GroupsReturnJson?.data?.Count + "个用户组");
+                return GroupsReturnJson;
+            }
+            /// <summary>
+            /// 获取用户列表
+            /// </summary>
+            /// <param name="Url">Cloudreve服务器地址</param>
+            /// <param name="cookie">登入返还的Cookie</param>
+            /// <param name="page">页数</param>
+            /// <param name="page_size">一页所展示的数量</param>
+            /// <param name="Sort">排序方式</param>
+            /// <param name="ScreenOut">屏幕显示输出</param>
+            /// <returns>GroupsListDataReturnJson 类型 返回内容</returns>
+            public static UserListDatareturnJson? GetUserList(string Url, string? cookie, int page = 1, int page_size = 999, UserListJson.Sort Sort = UserListJson.Sort.id_desc, bool ScreenOut = true)
+            {
+                string UrlData = "";
+                switch (Sort.ToString())
+                {
+                    case "id_desc":
+                        UrlData = "id desc";
+                        break;
+                    case "id_asc":
+                        UrlData = "id asc";
+                        break;
+                }
+                string? HttpRequestToStringData = HttpRequestToString(Url + "/api/v3/admin/user/list", cookie, data: UserListDataJson.UserListDataReturnJson(page, page_size, UrlData), httpMod: HttpMods.POST);
+                if (HttpRequestToStringData == null)//如果是null那就是连服务器都访问不上
+                {
+                    Logger.WriteError("发送获取用户列表请求失败(POST)!因为上面的原因...");//打印至日志
+                    if (ScreenOut)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("发送获取用户列表请求失败(POST)!因为上面的原因...");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    return null;
+                }
+                UserListDatareturnJson? UserListDatareturnJson = JsonSerializer.Deserialize<UserListDatareturnJson>(HttpRequestToStringData);
+                if (UserListDatareturnJson?.code != 0)
+                {
+                    Logger.WriteError("获取用户列表失败(POST)!因为:" + UserListDatareturnJson?.msg);//打印至日志
+                    if (ScreenOut)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("获取用户列表失败(POST)!因为:" + UserListDatareturnJson?.msg);
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    return UserListDatareturnJson;
+                }
+                Logger.WriteInfor("获取用户列表成功! 共有" + UserListDatareturnJson?.data?.total + "个用户");
+                if (ScreenOut)
+                    Console.WriteLine("获取用户列表成功! 共有" + UserListDatareturnJson?.data?.total + "个用户");
+                return UserListDatareturnJson;
+            }//Json表定义有歧义
         }
 
         /// <summary>
