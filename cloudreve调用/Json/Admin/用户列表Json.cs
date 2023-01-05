@@ -241,7 +241,7 @@ namespace cloudreve.Json.Admin
             /// <summary>
             /// 已使用空间大小
             /// </summary>
-            public int Storage { get; set; }
+            public long Storage { get; set; }
             /// <summary>
             /// 两步验证
             /// </summary>

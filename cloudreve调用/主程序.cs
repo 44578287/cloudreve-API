@@ -9,21 +9,49 @@ using static cloudreve.Json.User.FileSourceJson;
 using static cloudreve.Json.LoginJson;
 using static cloudreve.Json.User.UploadFilesJson;
 using static cloudreve.MODS.NetworkRequest;
+using static cloudreve.API.CloudreveAPI;
+
+DateTime beforDT = System.DateTime.Now;
 
 Logger.Enable(LoggerType.Console | LoggerType.Debug, LoggerLevel.Debug);//注册Log日志函数
 
-string ApiUrl = "http://127.0.0.1:5212";
-string? Cookie = null;
+string ApiUrl = "http://127.0.0.1";
+//string? Cookie = null;
 LoginDataJson logindata = new()
 {
-    UserName = "g9964957@gmail.com",
-    Password = "admin",
+    UserName = "test@445720.xyz",
+    Password = "test@445720.xyz",
+    CaptchaCode = ""
+};
+LoginDataJson logindata2 = new()
+{
+    UserName = "test@445720.xyz",
+    Password = "test",
     CaptchaCode = ""
 };
 
 
 
-Cookie = CloudreveAPI.Login(ApiUrl, logindata);//登入并获取Cookie
+//Cookie = CloudreveAPI.Login(ApiUrl, logindata);//登入并获取Cookie
+UserGroup UserGroup = new(@"Data/Cookie",ApiUrl,false);
+
+
+UserGroup.Login(logindata);
+UserGroup.Login(logindata2);
+
+
+//Console.WriteLine(UserGroup.UserReturn("g9964957@gmail.com").Account+"\n"+ UserGroup.UserReturn("g9964957@gmail.com").Cookie);
+
+
+
+/*foreach (var DataIn in UserGroup.Users)
+{
+    Console.WriteLine(DataIn.Account);
+    Console.WriteLine(DataIn.Cookie);
+}*/
+
+//UserGroup.Methods(1).GetDirectory();
+//UserGroup.Methods(0).GetConfig();
 
 
 //var path = @"C:\Users\g9964\Pictures\screenshots\khl20220911185044994.png";
@@ -67,4 +95,9 @@ Console.WriteLine(strings.Find(strings => strings == "7"));*/
 
 //Console.WriteLine(CloudreveAPI.Admin.GetGroupsList(ApiUrl, Cookie));
 //Console.WriteLine(CloudreveAPI.Admin.GetGroups(ApiUrl, Cookie));
-Console.WriteLine(CloudreveAPI.Admin.GetUserList(ApiUrl, Cookie));
+//Console.WriteLine(CloudreveAPI.Admin.GetUserList(ApiUrl, Cookie));
+
+
+
+
+Console.WriteLine("DateTime总共花费{0}ms.", System.DateTime.Now.Subtract(beforDT).TotalMilliseconds);

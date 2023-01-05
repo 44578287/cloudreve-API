@@ -21,6 +21,7 @@ using static cloudreve.Json.User.FileSourceJson;
 using static cloudreve.Json.User.ShareSearchJson;
 using static cloudreve.Json.User.UploadFilesJson;
 using static cloudreve.MODS.ConsolePrint;
+using static cloudreve.MODS.Encrypt;
 using static cloudreve.MODS.NetworkRequest;
 
 namespace cloudreve.API
@@ -840,7 +841,7 @@ namespace cloudreve.API
         /// <summary>
         /// 管理员操作
         /// </summary>
-        public class Admin
+        public class Admin : User
         {
             /// <summary>
             /// 获取用户组定义列表
@@ -1020,5 +1021,474 @@ namespace cloudreve.API
             [Description("&order_by=views&order=ASC")]
             NumberOfViewsFromSmallToLarge
         }
+
+        /// <summary>
+        /// 用户组(已登入用户并非"用户组")
+        /// </summary>
+        public class UserGroup
+        {
+            public List<UserData> Users { get; } = new();
+            public string CookiePath { get; set; }
+            public string Url { get; set; }
+            public bool ScreenOut { get; set; }
+            public string? UUID { get; }
+            /// <summary>
+            /// 初始化类时读取已登入用户信息
+            /// </summary>
+            /// <param name="CookiePath">本地Cookie保存位置</param>
+            /// <param name="Url">服务器地址</param>
+            /// <param name="ScreenOut">屏幕显示输出</param>
+            public UserGroup(string CookiePath, string Url, bool ScreenOut = true)
+            {
+                Logger.WriteDebug("初始化Cloudreve用户组");
+                this.CookiePath = CookiePath;
+                this.Url = Url;
+                this.ScreenOut = ScreenOut;
+                try
+                {
+                    string KeyPath = CookiePath + "/KEY";//KEY位置;
+                    InitializationEncrypt(KeyPath, "44578287");//初始化KEY
+                    this.UUID = DecryptEncrypt(KeyPath, "44578287")!;//解密KEY 获取UUID
+                    if (!Directory.Exists(CookiePath))//如果不存在就创建file文件夹　　             　　              
+                        Directory.CreateDirectory(CookiePath);//创建该文件夹
+
+                    DirectoryInfo CookiePaths = new DirectoryInfo(CookiePath);
+                    DirectoryInfo[] DirPaths = CookiePaths.GetDirectories();
+                    foreach (var CookieArray in DirPaths)
+                    {
+                        string? Cookie = DecryptUserCookie(CookiePath, CookieArray.Name, UUID);//获取用户Cookie
+                        int? code = User.GetCloudDriveSize(Url, Cookie, ScreenOut: false)?.code;
+                        if (code == 0)
+                        {
+                            Users.Add
+                                (
+                                new()
+                                {
+                                    Account = CookieArray.Name,
+                                    Cookie = Cookie,
+                                }
+                                );
+                            continue;
+                        }
+                        throw new InvalidOperationException("因为上面的错误");
+                    }
+                }
+                catch
+                {
+                    Logger.WriteError($"初始化用户组失败!路径:{Path.GetFullPath(CookiePath)}");
+                    return;
+                }
+                Logger.WriteInfor($"初始化用户组成功!路径:{Path.GetFullPath(CookiePath)} 已登入本地用户数量:{Users.Count}");
+            }
+            /// <summary>
+            /// 用户组用户登入
+            /// </summary>
+            /// <param name="LoginData">登入信息</param>
+            public void Login(LoginDataJson LoginData)
+            {
+                Logger.WriteDebug("用户组 用户登入(UserGroup-Login)");
+                int LoginIndex = UserReturnIndex(LoginData.UserName!);
+                if (LoginIndex == -1 || !(Directory.GetFiles($"{CookiePath}/{LoginData.UserName}").Length > 0))
+                {
+                    string? cookie = CloudreveAPI.Login(Url, LoginData, ScreenOut);
+                    if (cookie == null) //登入失败处理
+                    {
+                        return;
+                    }
+                    InitializationUser(CookiePath, LoginData.UserName!, cookie!, this.UUID!, Forced:true);//保存用户Cookie
+                    Users.Add(
+                        new()
+                        {
+                            Account = LoginData.UserName,
+                            Cookie = cookie,
+                        }
+                        );
+                    return;
+                }
+                //int LoginIndex = UserReturnIndex(LoginData.UserName!);
+                if (Users[LoginIndex].Cookie == null)//Cookie过期
+                {
+                    string? cookie = CloudreveAPI.Login(Url, LoginData, ScreenOut);
+                    if (cookie == null) //登入失败处理
+                    {
+                        return;
+                    }
+                    InitializationUser(CookiePath, LoginData.UserName!, cookie!, this.UUID!);//保存用户Cookie
+                    Users[LoginIndex].Cookie = cookie;
+                }
+            }
+            /// <summary>
+            /// 搜索已登入用户
+            /// </summary>
+            /// <param name="Account">用户名</param>
+            /// <returns>UserData 类型 返回内容 用户资料</returns>
+            public UserData? UserReturn(string Account)
+            {
+                Logger.WriteDebug($"搜索本地登入用户:{Account}");
+                int index = Users.FindIndex(x => x.Account == Account);
+                if (index != -1)
+                {
+                    Logger.WriteInfor($"搜索本地登入用户:{Account}成功! index:{index}");
+                    return Users[index];
+                }
+                Logger.WriteInfor($"搜索本地登入用户:{Account} 未有登入记录!");
+                return null;
+            }
+            /// <summary>
+            /// 搜索已登入用户
+            /// </summary>
+            /// <param name="Account">用户名</param>
+            /// <returns>int 类型 返回内容 用户列表index</returns>
+            public int UserReturnIndex(string Account)
+            {
+                Logger.WriteDebug($"搜索本地登入用户:{Account}");
+                int index = Users.FindIndex(x => x.Account == Account);
+                if (index != -1)
+                {
+                    Logger.WriteInfor($"搜索本地登入用户:{Account}成功! index:{index}");
+                    return index;
+                }
+                Logger.WriteInfor($"搜索本地登入用户:{Account} 未有登入记录!");
+                return -1;
+            }
+
+
+            /*/// <summary>
+            /// 上传文件至云盘
+            /// </summary>
+            /// <param name="UsersIndex">用户本地列表index</param>
+            /// <param name="policy">Cloudreve的存储策略</param>
+            /// <param name="FilesPath">本地文件路径</param>
+            /// <param name="CloudFilesPath">云盘上传路径(默认根目录"/")</param>
+            /// <param name="sessionID">任务ID 可替PUT请求 前提任务ID没有被清除</param>
+            /// <param name="SliceSize">上传分片大小</param>
+            /// <param name="Slice">上传任务分片</param>
+            /// <param name="ScreenOut">屏幕显示输出</param>
+            /// <returns>string 类型 上传状态</returns>
+            public string? UpFile(int UsersIndex, string policy, string FilesPath, string CloudFilesPath = "/", string? sessionID = null, int SliceSize = 0, int Slice = 0, bool ScreenOut = true)
+            {
+                string? Cookie = Users[UsersIndex].Cookie;
+                return User.UpFile(Url,Cookie, policy, FilesPath, CloudFilesPath, sessionID, SliceSize, Slice, ScreenOut);
+            }*/
+            /// <summary>
+            /// 用户方法
+            /// </summary>
+            public MethodsDefinition Methods(int UserIdex)
+            {
+                return new(UserIdex,this);
+            }
+            public MethodsDefinition Methods(string UserName)
+            {
+                return new(UserReturnIndex(UserName), this);
+            }
+
+
+            /// <summary>
+            /// 用户组方法定义
+            /// </summary>
+            public class MethodsDefinition
+            {
+                public UserGroup UserGroup;
+                public int UsersIndex = -1;
+                public UserData UserData = new();
+
+                public MethodsDefinition(int UsersIndex, UserGroup UserGroup)
+                {
+                    if (UserGroup.Users.Count == 0)
+                    {
+                        Logger.WriteError("传入的用户组内容数量不可以为0");
+                        throw new InvalidOperationException("传入的用户组内容数量不可以为0");
+                    }
+                    if (UsersIndex == -1 || UserGroup.Users.Count < UsersIndex)
+                    {
+                        Logger.WriteError($"传入的用户Index错误 Index:{UsersIndex}");
+                        throw new InvalidOperationException("传入的用户Index错误");
+                    }
+                    this.UserGroup = UserGroup;
+                    this.UsersIndex = UsersIndex;
+                    UserData = UserGroup.Users[UsersIndex];
+                }
+
+                //User操作
+                /// <summary>
+                /// 上传文件至云盘
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="policy">Cloudreve的存储策略</param>
+                /// <param name="FilesPath">本地文件路径</param>
+                /// <param name="CloudFilesPath">云盘上传路径(默认根目录"/")</param>
+                /// <param name="sessionID">任务ID 可替PUT请求 前提任务ID没有被清除</param>
+                /// <param name="SliceSize">上传分片大小</param>
+                /// <param name="Slice">上传任务分片</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>string 类型 上传状态</returns>
+                public string? UpFile(string policy, string FilesPath, string CloudFilesPath = "/", bool ScreenOut = true)
+                {
+                    return User.UpFile(UserGroup.Url, UserData.Cookie, policy, FilesPath, CloudFilesPath, ScreenOut: ScreenOut);
+                }
+                /// <summary>
+                /// 删除上传文件列队
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="sessionID">任务ID</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>DeleteUpFileListReturnJson 类型 返回</returns>
+                public DeleteUpFileListReturnJson? DeleteUpFileList(string? sessionID = null, bool ScreenOut = true)
+                {
+                    return User.DeleteUpFileList(UserGroup.Url, UserData.Cookie, sessionID, ScreenOut);
+                }
+                /// <summary>
+                /// 获取目录内容
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="Directory">云盘目录</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>DirectoryDataReturnJson 类型 返回内容</returns>
+                public DirectoryDataReturnJson? GetDirectory(string? Directory = null, bool ScreenOut = true)
+                {
+                    return User.GetDirectory(UserGroup.Url, UserData.Cookie, Directory, ScreenOut);
+                }
+                /// <summary>
+                /// 获取文件下载路径
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="ID">文件ID</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>DirectoryDataReturnJson 类型 返回内容</returns>
+                public DownloadReturnJson? GetDownloadUrl(string ID, bool ScreenOut = true)
+                {
+                    return User.GetDownloadUrl(UserGroup.Url, UserData.Cookie, ID, ScreenOut);
+                }
+                /// <summary>
+                /// 获取文件外链
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="ID">文件ID</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FileSourceDataReturnJson 类型 返回内容</returns>
+                public FileSourceDataReturnJson? GetFileSource(List<string> ID, bool ScreenOut = true)
+                {
+                    return User.GetFileSource(UserGroup.Url, UserData.Cookie, ID, ScreenOut);
+                }
+                /// <summary>
+                /// 获取文件分享链接
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="ID">文件ID</param>
+                /// <param name="is_dir">是否为文件夹</param>
+                /// <param name="password">密码</param>
+                /// <param name="downloads">下载多少次过期</param>
+                /// <param name="expire">过期时间</param>
+                /// <param name="preview">是否允许预览</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FileSourceDataReturnJson 类型 返回内容</returns>
+                public FileShareDataReturnJson? GetFileShare(string ID, bool is_dir = false, string? password = null, int downloads = -1, int expire = 86400, bool preview = true, bool ScreenOut = true)
+                {
+                    return User.GetFileShare(UserGroup.Url, UserData.Cookie, ID, is_dir, password, downloads, expire, preview, ScreenOut);
+                }
+                /// <summary>
+                /// 查询文件分享链接列表
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="page">页数</param>
+                /// <param name="Sort">排序方式</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FileShareShowreturnJson 类型 返回内容</returns>
+                public FileShareShowreturnJson? GetFileShareShow(int page = 1, Sort Sort = Sort.CreationDateFromLateToEarly, bool ScreenOut = true)
+                {
+                    return User.GetFileShareShow(UserGroup.Url, UserData.Cookie, page, Sort, ScreenOut);
+                }
+                /// <summary>
+                /// 设置文件分享链接
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="Key">分享文件ID</param>
+                /// <param name="Settings">设置选项</param>
+                /// <param name="value">设置值</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FileShareShowreturnJson 类型 返回内容</returns>
+                public SettingsReturnJson? SetFileShare(string Key, Settings Settings, string value, bool ScreenOut = true)
+                {
+                    return User.SetFileShare(UserGroup.Url, UserData.Cookie, Key, Settings, value, ScreenOut);
+                }
+                /// <summary>
+                /// 删除文件分享链接
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="Key">分享文件ID</param>
+                /// <param name="Settings">设置选项</param>
+                /// <param name="value">设置值</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FileShareShowreturnJson 类型 返回内容</returns>
+                public DeltetShareReturnJson? DeltetFileShare(string Key, bool ScreenOut = true)
+                {
+                    return User.DeltetFileShare(UserGroup.Url, UserData.Cookie, Key, ScreenOut);
+                }
+                /// <summary>
+                /// 获取Config
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>ConfigReturnJson 类型 返回内容</returns>
+                public ConfigReturnJson? GetConfig(bool ScreenOut = true)
+                {
+                    return User.GetConfig(UserGroup.Url, UserData.Cookie, ScreenOut);
+                }
+                /// <summary>
+                /// 删除文件
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="FilesID">要删除的文件ID</param>
+                /// <param name="DirsID">要删除的文件夹ID</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>DeleteFilesDataReturnJson 类型 返回内容</returns>
+                public DeleteFilesDataReturnJson? DeleteFiles(List<string>? FilesID = null, List<string>? DirsID = null, bool ScreenOut = true)
+                {
+                    return User.DeleteFiles(UserGroup.Url, UserData.Cookie, FilesID, DirsID, ScreenOut);
+                }
+                /// <summary>
+                /// 获取文件详细信息
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="FilesID">要查询的文件ID</param>
+                /// <param name="DirsID">要查询的文件夹ID</param>
+                /// <param name="trace_root">文件路径跟踪</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FilesDataReturnJson 类型 返回内容</returns>
+                public FilesDataReturnJson? GetFilesData(string? FilesID = null, string? DirsID = null, bool trace_root = true, bool ScreenOut = true)
+                {
+                    return User.GetFilesData(UserGroup.Url, UserData.Cookie, FilesID, DirsID, trace_root, ScreenOut);
+                }
+                /// <summary>
+                /// 获取云盘容量
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>CloudDriveSizeReturnJson 类型 返回内容</returns>
+                public CloudDriveSizeReturnJson? GetCloudDriveSize(bool ScreenOut = true)
+                {
+                    return User.GetCloudDriveSize(UserGroup.Url, UserData.Cookie, ScreenOut);
+                }
+                /// <summary>
+                /// 搜索文件
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="name">要搜索的文件名</param>
+                /// <param name="CloudFilesPath">搜索的目录</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>FileSearchReturnJson 类型 返回内容</returns>
+                public FileSearchReturnJson? FileSearch(string name, string CloudFilesPath = "", bool ScreenOut = true)
+                {
+                    return User.FileSearch(UserGroup.Url, UserData.Cookie, name, CloudFilesPath, ScreenOut);
+                }
+                /// <summary>
+                /// 搜索分享链接
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="name">要搜索的文件名</param>
+                /// <param name="page">页数</param>
+                /// <param name="Sort">排序方式</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>ShareSearchReturnJson 类型 返回内容</returns>
+                public ShareSearchReturnJson? ShareSearch(string name, int page = 1, Sort Sort = Sort.CreationDateFromLateToEarly, bool ScreenOut = true)
+                {
+                    return User.ShareSearch(UserGroup.Url, UserData.Cookie, name, page, Sort, ScreenOut);
+                }
+
+
+                //Admin操作
+                /// <summary>
+                /// 获取用户组定义列表
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="page">页数</param>
+                /// <param name="page_size">一页所展示的数量</param>
+                /// <param name="Sort">排序方式</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>GroupsListDataReturnJson 类型 返回内容</returns>
+                public GroupsListDataReturnJson? GetGroupsList(int page = 1, int page_size = 999, GroupsListJson.Sort Sort = GroupsListJson.Sort.id_desc, bool ScreenOut = true)
+                {
+                    return Admin.GetGroupsList(UserGroup.Url, UserData.Cookie, page, page_size, Sort, ScreenOut);
+                }
+                /// <summary>
+                /// 获取用户列表
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>GroupsReturnJson 类型 返回内容</returns>
+                public GroupsReturnJson? GetGroups(bool ScreenOut = true)
+                {
+                    return Admin.GetGroups(UserGroup.Url, UserData.Cookie, ScreenOut);
+                }
+                /// <summary>
+                /// 获取用户列表
+                /// </summary>
+                /// <param name="Url">Cloudreve服务器地址</param>
+                /// <param name="cookie">登入返还的Cookie</param>
+                /// <param name="page">页数</param>
+                /// <param name="page_size">一页所展示的数量</param>
+                /// <param name="Sort">排序方式</param>
+                /// <param name="ScreenOut">屏幕显示输出</param>
+                /// <returns>GroupsListDataReturnJson 类型 返回内容</returns>
+                public UserListDatareturnJson? GetUserList(int page = 1, int page_size = 999, UserListJson.Sort Sort = UserListJson.Sort.id_desc, bool ScreenOut = true)
+                {
+                    return Admin.GetUserList(UserGroup.Url, UserData.Cookie, page, page_size, Sort, ScreenOut);
+                }
+            }
+
+        }
+        /// <summary>
+        /// 用户组信息
+        /// </summary>
+        public class UserData
+        {
+            /// <summary>
+            /// 账号
+            /// </summary>
+            public string? Account { get; set; } = null;
+            /*/// <summary>
+            /// 用户名
+            /// </summary>
+            public string? Name { get; set; } = null;
+            /// <summary>
+            /// 登入时间
+            /// </summary>
+            public DateTimeOffset? LoginTime { get; set; } = null;*/
+            /// <summary>
+            /// Cookie
+            /// </summary>
+            public string? Cookie { get; set; } = null;
+            /*/// <summary>
+            /// 总容量
+            /// </summary>
+            public double? Space { get; set; } = null;
+            /// <summary>
+            /// 已使用容量
+            /// </summary>
+            public double? UsedSpace { get; set; } = null;
+            /// <summary>
+            /// 剩余容量
+            /// </summary>
+            public double? RemainingSpace { get; set; } = null;*/
+        }
+        
+
     }
 }
